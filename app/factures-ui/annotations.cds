@@ -1,0 +1,1 @@
+using ComptableService as service from '../../srv/comptable-service';

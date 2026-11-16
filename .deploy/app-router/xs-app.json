@@ -1,0 +1,23 @@
+{
+  "welcomeFile": "/comptableui/index.html",
+  "routes": [
+    {
+      "source": "^/comptableui/(comptable|responsable|analyse)/(.*)$",
+      "target": "/$1/$2",
+      "destination": "srv-api",
+      "csrfProtection": true
+    },
+    {
+      "source": "^/(comptable|responsable|analyse)/(.*)$",
+      "target": "/$1/$2",
+      "destination": "srv-api",
+      "csrfProtection": true
+    },
+    {
+      "source": "^(.*)$",
+      "target": "$1",
+      "service": "html5-apps-repo-rt",
+      "authenticationType": "xsuaa"
+    }
+  ]
+}

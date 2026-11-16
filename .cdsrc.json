@@ -1,0 +1,11 @@
+{
+  "requires": {
+    "auth": {
+      "kind": "mocked",
+      "users": {
+        "comptable":   { "password": "comptable",   "roles": ["comptable"] },
+        "responsable": { "password": "responsable", "roles": ["responsable"] }
+      }
+    }
+  }
+}

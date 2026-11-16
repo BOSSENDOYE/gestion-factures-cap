@@ -1,0 +1,176 @@
+_schema-version: 3.3.0
+ID: gestion-factures
+description: A simple CAP project.
+version: 1.0.0
+modules:
+- name: gestion-factures-srv
+  type: nodejs
+  path: gen/srv
+  requires:
+  - name: gestion-factures-auth
+  - name: gestion-factures-db
+  provides:
+  - name: srv-api
+    properties:
+      srv-url: ${default-url}
+  parameters:
+    buildpack: nodejs_buildpack
+    instances: 1
+  build-parameters:
+    builder: npm-ci
+- name: gestion-factures-db-deployer
+  type: hdb
+  path: gen/db
+  requires:
+  - name: gestion-factures-db
+  parameters:
+    buildpack: nodejs_buildpack
+- name: gestion-factures
+  type: approuter.nodejs
+  path: .deploy/app-router
+  requires:
+  - name: srv-api
+    group: destinations
+    properties:
+      forwardAuthToken: true
+      name: srv-api
+      url: ~{srv-url}
+  - name: gestion-factures-auth
+  - name: gestion-factures-html5-runtime
+  - name: gestion-factures-destination-service
+    group: destinations
+    properties:
+      forwardAuthToken: false
+      name: ui5
+      url: https://ui5.sap.com
+  provides:
+  - name: app-api
+    properties:
+      app-protocol: ${protocol}
+      app-uri: ${default-uri}
+  parameters:
+    disk-quota: 256M
+    keep-existing-routes: true
+    memory: 256M
+- name: gestion-factures-app-content
+  type: com.sap.application.content
+  path: .
+  requires:
+  - name: gestion-factures-repo-host
+    parameters:
+      content-target: true
+  build-parameters:
+    build-result: resources
+    requires:
+    - artifacts:
+      - comptableui.zip
+      name: comptableui
+      target-path: resources/
+    - artifacts:
+      - facturesui.zip
+      name: facturesui
+      target-path: resources/
+    - artifacts:
+      - responsableui.zip
+      name: responsableui
+      target-path: resources/
+- name: comptableui
+  type: html5
+  path: app/comptable-ui
+  build-parameters:
+    build-result: dist
+    builder: custom
+    commands:
+    - npm install
+    - npm run build:cf
+    supported-platforms: []
+- name: facturesui
+  type: html5
+  path: app/factures-ui
+  build-parameters:
+    build-result: dist
+    builder: custom
+    commands:
+    - npm install
+    - npm run build:cf
+    supported-platforms: []
+- name: responsableui
+  type: html5
+  path: app/responsable-ui
+  build-parameters:
+    build-result: dist
+    builder: custom
+    commands:
+    - npm install
+    - npm run build:cf
+    supported-platforms: []
+resources:
+- name: gestion-factures-html5-runtime
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: html5-apps-repo
+    service-plan: app-runtime
+- name: gestion-factures-auth
+  type: org.cloudfoundry.managed-service
+  parameters:
+    config:
+      oauth2-configuration:
+        credential-types:
+        - binding-secret
+        - x509
+        redirect-uris:
+        - https://*~{app-api/app-uri}/**
+      role-collections:
+      - description: generated
+        name: comptable (gestion-factures ${org}-${space})
+        role-template-references:
+        - $XSAPPNAME.comptable
+      - description: generated
+        name: responsable (gestion-factures ${org}-${space})
+        role-template-references:
+        - $XSAPPNAME.responsable
+      tenant-mode: dedicated
+      xsappname: gestion-factures-${org}-${space}
+    path: ./xs-security.json
+    service: xsuaa
+    service-plan: application
+  requires:
+  - name: app-api
+- name: gestion-factures-db
+  type: com.sap.xs.hdi-container
+  parameters:
+    service: hana
+    service-plan: hdi-shared
+- name: gestion-factures-repo-host
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: html5-apps-repo
+    service-name: gestion-factures-html5-service
+    service-plan: app-host
+- name: gestion-factures-destination-service
+  type: org.cloudfoundry.managed-service
+  parameters:
+    config:
+      HTML5Runtime_enabled: false
+      init_data:
+        instance:
+          destinations:
+          - Authentication: NoAuthentication
+            Name: ui5
+            ProxyType: Internet
+            Type: HTTP
+            URL: https://ui5.sap.com
+          existing_destinations_policy: update
+      version: 1.0.0
+    service: destination
+    service-name: gestion-factures-destination-service
+    service-plan: lite
+parameters:
+  deploy_mode: html5-repo
+  enable-parallel-deployments: true
+build-parameters:
+  before-all:
+  - builder: custom
+    commands:
+    - npm ci
+    - npx cds build --production
