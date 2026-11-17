@@ -36,3 +36,11 @@ Learn more at <https://cap.cloud.sap>.
 ## Captures d'écran
 
 
+
+## Captures d'écran
+
+### Analyse des montants par fournisseur et par statut
+![Analyse](docs/screenshots/analyse.png)
+
+### Saisie des factures (comptable)
+![Liste des factures](docs/screenshots/saisie-liste.png)
