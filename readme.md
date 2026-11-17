@@ -20,3 +20,15 @@ File or Folder | Purpose
 ## Learn More
 
 Learn more at <https://cap.cloud.sap>.
+
+## Contenu du projet
+- `db/` : modèle de données (Fournisseurs, Factures, Lignes, Ordres de paiement)
+- `srv/` : services Comptable, Responsable et Analyse, handlers, sécurité
+- `app/` : applications Fiori Elements (saisie, validation, analyse)
+- `test/` : tests automatiques `cds.test`
+- `mta.yaml` : déploiement SAP BTP (HANA Cloud, XSUAA, HTML5 repository)
+
+## Commandes
+- Lancer en local : `npm install` puis `cds watch`
+- Tests : `npm test`
+- Déployer : `mbt build -t gen --mtar mta.mtar` puis `cf deploy gen/mta.mtar`
